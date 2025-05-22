@@ -26,8 +26,20 @@ const Register = () => {
 
     const { username, email, password, repeatPassword } = formData;
 
-    if (!username.trim() || !email.trim() || !password.trim()) {
-      setError("All fields are required!");
+    if (
+      !username.trim() ||
+      !email.trim() ||
+      !password.trim() ||
+      !repeatPassword.trim()
+    ) {
+      setError("Всички полета са задължителни.");
+      setTimeout(() => setError(""), 3000);
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (username.length < 3) {
+      setError("Потребителското име трябва да съдържа поне 3 символа.");
       setTimeout(() => setError(""), 3000);
       setIsSubmitting(false);
       return;
@@ -70,7 +82,11 @@ const Register = () => {
       <h1 className="text-center font-bold text-2xl mt-10 p-4">Регистрация</h1>
 
       <p className="text-center text-gray-600 text-base mt-6 px-4">
-        Създайте акаунт, за да използвате нашите услуги.
+        Създайте акаунт, за да записвате прогреса си и тренировките безопасно.
+        Изискваме по-сигурна парола, за да защитим личната ви информация и
+        напредък — все пак това е вашият личен фитнес дневник, не публичен
+        профил.
+        * Минимум 6 символа. Препоръчваме комбинация от букви и цифри.
       </p>
       {error && (
         <p className="text-red-400 text-2xl text-center font-bold">{error}</p>
@@ -130,7 +146,7 @@ const Register = () => {
           className="bg-blue-500 rounded p-2 mx-auto hover:bg-blue-800 text-white transition"
           disabled={isSubmitting}
         >
-          {isSubmitting ? "Регистрация..." : "Регистрация"}
+          {isSubmitting ? "Моля, изчакайте..." : "Регистрация"}
         </button>
       </form>
     </div>
