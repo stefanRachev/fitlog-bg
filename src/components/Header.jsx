@@ -1,21 +1,21 @@
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-//import { useAuth } from "../context/useAuth";
+import { useAuth } from "../context/auth/useAuth";
 
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
-  //const { user, logout } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  //   const handleLogout = async () => {
-  //     try {
-  //       await logout();
-  //       navigate("/login");
-  //     } catch (err) {
-  //       console.error("Logout error:", err.message);
-  //     }
-  //   };
-  let user = true;
+    const handleLogout = async () => {
+      try {
+        await logout();
+        navigate("/login");
+      } catch (err) {
+        console.error("Logout error:", err.message);
+      }
+    };
+  //let user = true;
 
   return (
     <header className="bg-blue-600 p-4 text-white w-full">
