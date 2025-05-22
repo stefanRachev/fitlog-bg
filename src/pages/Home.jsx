@@ -19,7 +19,7 @@ const Home = () => {
           </p>
           <div className="flex justify-center gap-4">
             <Link
-              to="/add-workout"
+              to="/new-workout"
               className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold py-3 px-6 rounded-lg transition"
             >
               Добави Тренировка
