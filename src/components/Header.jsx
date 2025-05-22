@@ -15,7 +15,6 @@ const Header = () => {
         console.error("Logout error:", err.message);
       }
     };
-  //let user = true;
 
   return (
     <header className="bg-blue-600 p-4 text-white w-full">
@@ -66,7 +65,7 @@ const Header = () => {
                   }
                   onClick={() => setMenuOpen(false)}
                 >
-                  Register
+                  Регистрация
                 </NavLink>
                 <NavLink
                   to="/login"
@@ -75,7 +74,7 @@ const Header = () => {
                   }
                   onClick={() => setMenuOpen(false)}
                 >
-                  Login
+                  Вход
                 </NavLink>
               </>
             )}
@@ -101,7 +100,7 @@ const Header = () => {
                   }}
                   className="text-left md:text-center underline"
                 >
-                  Logout
+                  Изход
                 </button>
               </>
             )}
