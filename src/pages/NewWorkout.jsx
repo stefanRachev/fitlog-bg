@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   getFirestore,
   doc,
@@ -7,6 +7,7 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 import { useAuth } from "../context/auth/useAuth";
+import { useNavigate } from "react-router-dom";
 
 const db = getFirestore();
 
@@ -22,6 +23,13 @@ function NewWorkout() {
   const [loading, setLoading] = useState(false);
 
   const { user } = useAuth();
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    if (!user) {
+      navigate("/login");
+    }
+  }, [user, navigate]);
 
   const handleExerciseChange = (index, field, value) => {
     const newExercises = [...exercises];

@@ -55,36 +55,39 @@ const Home = () => {
         </div>
       </section>
 
-      <section className="container mx-auto py-12 px-4">
-        <h2 className="text-3xl font-bold mb-8 text-center">
-          Последни Тренировки
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {recentWorkouts.map((workout) => (
-            <div
-              key={workout.id}
-              className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition"
-            >
-              <h3 className="text-xl font-bold mb-2">{workout.title}</h3>
-              <p className="text-gray-600 mb-2">Дата: {workout.date}</p>
-              <p className="text-gray-600">
-                Продължителност: {workout.duration} мин
-              </p>
-              <Link
-                to={`/workout/${workout.id}`}
-                className="mt-4 inline-block text-blue-600 hover:underline"
+      {user && (
+        <section className="container mx-auto py-12 px-4">
+          <h2 className="text-3xl font-bold mb-8 text-center">
+            Последни Тренировки
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {recentWorkouts.map((workout) => (
+              <div
+                key={workout.id}
+                className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition"
               >
-                Виж детайли
-              </Link>
-            </div>
-          ))}
-        </div>
-        {recentWorkouts.length === 0 && (
-          <p className="text-center text-gray-500">
-            Все още няма записи. Добавете първата тренировка!
-          </p>
-        )}
-      </section>
+                <h3 className="text-xl font-bold mb-2">{workout.title}</h3>
+                <p className="text-gray-600 mb-2">Дата: {workout.date}</p>
+                <p className="text-gray-600">
+                  Продължителност: {workout.duration} мин
+                </p>
+                <Link
+                  to={`/workout/${workout.id}`}
+                  className="mt-4 inline-block text-blue-600 hover:underline"
+                >
+                  Виж детайли
+                </Link>
+              </div>
+            ))}
+          </div>
+          {recentWorkouts.length === 0 && (
+            <p className="text-center text-gray-500">
+              Все още няма записи. Добавете първата тренировка!
+            </p>
+          )}
+        </section>
+      )}
+
 
       <section className="bg-gray-100 py-12 px-4">
         <div className="container mx-auto text-center">
