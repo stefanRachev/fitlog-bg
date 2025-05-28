@@ -81,12 +81,14 @@ const Register = () => {
     <div className="w-full max-w-lg mx-auto bg-white rounded-xl">
       <h1 className="text-center font-bold text-2xl mt-10 p-4">Регистрация</h1>
 
-      <p className="text-center text-gray-600 text-base mt-6 px-4">
+      <p className="text-center text-gray-600 text-base mt-6 leading-relaxed bg-red-100 rounded-xl p-2 mx-4">
         Създайте акаунт, за да записвате прогреса си и тренировките безопасно.
         Изискваме по-сигурна парола, за да защитим личната ви информация и
         напредък — все пак това е вашият личен фитнес дневник, не публичен
         профил.
-        * Минимум 6 символа. Препоръчваме комбинация от букви и цифри.
+        <br />
+        <span className="font-semibold">*</span> Минимум 6 символа. Препоръчваме
+        комбинация от букви и цифри.
       </p>
       {error && (
         <p className="text-red-400 text-2xl text-center font-bold">{error}</p>
