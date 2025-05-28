@@ -7,20 +7,22 @@ const Header = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-    const handleLogout = async () => {
-      try {
-        await logout();
-        navigate("/login");
-      } catch (err) {
-        console.error("Logout error:", err.message);
-      }
-    };
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate("/login");
+    } catch (err) {
+      console.error("Logout error:", err.message);
+    }
+  };
 
   return (
     <header className="bg-blue-600 p-4 text-white w-full">
       <div className="container mx-auto flex flex-wrap items-center justify-between">
         <div className="flex items-center justify-between w-full md:w-auto">
-          <div className="text-lg font-bold">MySite</div>
+          <NavLink to="/" className="text-lg font-bold">
+            FitLog
+          </NavLink>
           <button
             onClick={() => setMenuOpen(!menuOpen)}
             className="md:hidden text-2xl ml-4"
@@ -31,9 +33,8 @@ const Header = () => {
         </div>
 
         <nav
-          className={`w-full md:w-auto ${
-            menuOpen ? "block" : "hidden"
-          } md:block`}
+          className={`w-full md:w-auto ${menuOpen ? "block" : "hidden"
+            } md:block`}
         >
           <div className="flex flex-col md:flex-row md:space-x-4 space-y-2 md:space-y-0 mt-2 md:mt-0">
             <NavLink
@@ -43,7 +44,7 @@ const Header = () => {
               }
               onClick={() => setMenuOpen(false)}
             >
-              Home
+              Начало
             </NavLink>
 
             <NavLink
@@ -53,7 +54,7 @@ const Header = () => {
               }
               onClick={() => setMenuOpen(false)}
             >
-              Comments
+              Коментари
             </NavLink>
 
             {!user && (
@@ -91,7 +92,7 @@ const Header = () => {
                   }
                   onClick={() => setMenuOpen(false)}
                 >
-                  Dashboard
+                  Профил
                 </NavLink>
                 <button
                   onClick={() => {
