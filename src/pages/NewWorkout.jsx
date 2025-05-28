@@ -66,7 +66,7 @@ function NewWorkout() {
       {exercises.map((ex, i) => (
         <div
           key={i}
-          className="grid grid-cols-2 md:grid-cols-4 gap-3 bg-gray-50 p-3 rounded-lg"
+          className="flex flex-col gap-3 bg-gray-50 p-3 rounded-lg"
         >
           <input
             type="text"
