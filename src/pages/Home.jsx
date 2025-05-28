@@ -1,14 +1,35 @@
+import { useEffect, useState } from "react";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "../firebase/firebase";
 import { Link } from "react-router-dom";
+import { useAuth } from "../context/auth/useAuth";
 
 const Home = () => {
-  const recentWorkouts = [
-    { id: 1, date: "2024-05-20", type: "Спина + Бицепс", duration: "75 мин" },
-    { id: 2, date: "2024-05-18", type: "Крака", duration: "60 мин" },
-  ];
+  const [recentWorkouts, setRecentWorkouts] = useState([]);
+  const { user } = useAuth();
+
+  useEffect(() => {
+    const fetchWorkouts = async () => {
+      if (!user) return;
+
+      try {
+        const workoutsRef = collection(db, "users", user.uid, "workouts");
+        const workoutsSnapshot = await getDocs(workoutsRef);
+        const workoutsData = workoutsSnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setRecentWorkouts(workoutsData);
+      } catch (error) {
+        console.error("Грешка при зареждане на тренировките:", error);
+      }
+    };
+
+    fetchWorkouts();
+  }, [user]);
 
   return (
     <div className="min-h-screen bg-gray-50">
-   
       <section className="bg-blue-600 text-white py-20 px-4">
         <div className="container mx-auto text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-6">
@@ -34,7 +55,6 @@ const Home = () => {
         </div>
       </section>
 
-   
       <section className="container mx-auto py-12 px-4">
         <h2 className="text-3xl font-bold mb-8 text-center">
           Последни Тренировки
@@ -45,10 +65,10 @@ const Home = () => {
               key={workout.id}
               className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition"
             >
-              <h3 className="text-xl font-bold mb-2">{workout.type}</h3>
+              <h3 className="text-xl font-bold mb-2">{workout.title}</h3>
               <p className="text-gray-600 mb-2">Дата: {workout.date}</p>
               <p className="text-gray-600">
-                Продължителност: {workout.duration}
+                Продължителност: {workout.duration} мин
               </p>
               <Link
                 to={`/workout/${workout.id}`}
@@ -66,7 +86,6 @@ const Home = () => {
         )}
       </section>
 
-     
       <section className="bg-gray-100 py-12 px-4">
         <div className="container mx-auto text-center">
           <h2 className="text-3xl font-bold mb-6">

@@ -1,4 +1,14 @@
 import { useState } from "react";
+import {
+  getFirestore,
+  doc,
+  collection,
+  addDoc,
+  serverTimestamp,
+} from "firebase/firestore";
+import { useAuth } from "../context/auth/useAuth";
+
+const db = getFirestore();
 
 function NewWorkout() {
   const [title, setTitle] = useState("");
@@ -7,6 +17,11 @@ function NewWorkout() {
   const [exercises, setExercises] = useState([
     { name: "", sets: "", reps: "", weight: "" },
   ]);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const { user } = useAuth();
 
   const handleExerciseChange = (index, field, value) => {
     const newExercises = [...exercises];
@@ -18,17 +33,40 @@ function NewWorkout() {
     setExercises([...exercises, { name: "", sets: "", reps: "", weight: "" }]);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const workout = { title, date, duration, exercises };
-    console.log("Записана тренировка:", workout);
-  
 
-    
-    setTitle("");
-    setDate("");
-    setDuration("");
-    setExercises([{ name: "", sets: "", reps: "", weight: "" }]);
+    if (!user) {
+      setError("Трябва да си влязъл в профила си, за да запазиш тренировка.");
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    setSuccess(false);
+
+    const workout = {
+      title,
+      date,
+      duration: Number(duration),
+      exercises,
+      createdAt: serverTimestamp(),
+    };
+    try {
+      const userRef = doc(db, "users", user.uid);
+      const workoutsRef = collection(userRef, "workouts");
+      await addDoc(workoutsRef, workout);
+
+      setSuccess(true);
+      setTitle("");
+      setDate("");
+      setDuration("");
+      setExercises([{ name: "", sets: "", reps: "", weight: "" }]);
+    } catch (err) {
+      console.error("Error saving workout:", err);
+      setError("Грешка при запис на тренировката.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -37,6 +75,11 @@ function NewWorkout() {
       className="w-full max-w-2xl mx-auto flex flex-col gap-4 p-4 md:p-6 border rounded-2xl bg-white shadow-md"
     >
       <h2 className="text-xl font-bold text-center">Създай нова тренировка</h2>
+
+      {error && <p className="text-red-500">{error}</p>}
+      {success && (
+        <p className="text-green-500">Тренировката е запазена успешно!</p>
+      )}
 
       <input
         type="text"
@@ -64,10 +107,7 @@ function NewWorkout() {
       />
 
       {exercises.map((ex, i) => (
-        <div
-          key={i}
-          className="flex flex-col gap-3 bg-gray-50 p-3 rounded-lg"
-        >
+        <div key={i} className="flex flex-col gap-3 bg-gray-50 p-3 rounded-lg">
           <input
             type="text"
             placeholder="Име на упражнение"
