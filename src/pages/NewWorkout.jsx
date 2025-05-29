@@ -16,7 +16,7 @@ function NewWorkout() {
   const [date, setDate] = useState("");
   const [duration, setDuration] = useState("");
   const [exercises, setExercises] = useState([
-    { name: "", sets: "", reps: "", weight: "" },
+    { name: "", sets: [{ reps: "", weight: "" }] }
   ]);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
@@ -31,14 +31,26 @@ function NewWorkout() {
     }
   }, [user, navigate]);
 
-  const handleExerciseChange = (index, field, value) => {
+
+  const addExercise = () => {
+    setExercises([...exercises, { name: "", sets: [{ reps: "", weight: "" }] }]);
+  };
+  const addSetToExercise = (exerciseIndex) => {
     const newExercises = [...exercises];
-    newExercises[index][field] = value;
+    newExercises[exerciseIndex].sets.push({ reps: "", weight: "" });
     setExercises(newExercises);
   };
 
-  const addExercise = () => {
-    setExercises([...exercises, { name: "", sets: "", reps: "", weight: "" }]);
+  const handleSetChange = (exerciseIndex, setIndex, field, value) => {
+    const newExercises = [...exercises];
+    newExercises[exerciseIndex].sets[setIndex][field] = value;
+    setExercises(newExercises);
+  };
+
+  const handleExerciseNameChange = (index, value) => {
+    const newExercises = [...exercises];
+    newExercises[index].name = value;
+    setExercises(newExercises);
   };
 
   const handleSubmit = async (e) => {
@@ -68,7 +80,8 @@ function NewWorkout() {
       setTitle("");
       setDate("");
       setDuration("");
-      setExercises([{ name: "", sets: "", reps: "", weight: "" }]);
+      setExercises([{ name: "", sets: [{ reps: "", weight: "" }] }]);
+      setTimeout(() => navigate("/"), 1000);
     } catch (err) {
       console.error("Error saving workout:", err);
       setError("Грешка при запис на тренировката.");
@@ -114,41 +127,49 @@ function NewWorkout() {
         className="border rounded-lg px-3 py-2"
       />
 
-      {exercises.map((ex, i) => (
-        <div key={i} className="flex flex-col gap-3 bg-gray-50 p-3 rounded-lg">
+      {exercises.map((exercise, i) => (
+        <div key={i} className="p-4 border rounded-lg bg-gray-100">
           <input
             type="text"
             placeholder="Име на упражнение"
-            value={ex.name}
-            onChange={(e) => handleExerciseChange(i, "name", e.target.value)}
-            required
-            className="border rounded-lg px-2 py-1"
+            value={exercise.name}
+            onChange={(e) => handleExerciseNameChange(i, e.target.value)}
+            className="border p-2 w-full"
           />
-          <input
-            type="number"
-            placeholder="Серии"
-            value={ex.sets}
-            onChange={(e) => handleExerciseChange(i, "sets", e.target.value)}
-            required
-            className="border rounded-lg px-2 py-1"
-          />
-          <input
-            type="number"
-            placeholder="Повторения"
-            value={ex.reps}
-            onChange={(e) => handleExerciseChange(i, "reps", e.target.value)}
-            required
-            className="border rounded-lg px-2 py-1"
-          />
-          <input
-            type="number"
-            placeholder="Тежест (кг)"
-            value={ex.weight}
-            onChange={(e) => handleExerciseChange(i, "weight", e.target.value)}
-            className="border rounded-lg px-2 py-1"
-          />
+
+          {exercise.sets.map((set, j) => (
+            <div key={j} className="flex flex-col gap-2 my-2">
+              <input
+                type="number"
+                placeholder="Повторения"
+                value={set.reps}
+                onChange={(e) =>
+                  handleSetChange(i, j, "reps", e.target.value)
+                }
+                className="border p-2 flex-1"
+              />
+              <input
+                type="number"
+                placeholder="Тежест (кг)"
+                value={set.weight}
+                onChange={(e) =>
+                  handleSetChange(i, j, "weight", e.target.value)
+                }
+                className="border p-2 flex-1"
+              />
+            </div>
+          ))}
+
+          <button
+            type="button"
+            onClick={() => addSetToExercise(i)}
+            className="bg-green-500 text-white px-3 py-1 rounded"
+          >
+            Добави серия
+          </button>
         </div>
       ))}
+
 
       <button
         type="button"
