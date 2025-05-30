@@ -83,7 +83,7 @@ const Header = () => {
             {user && (
               <>
                 <span className="font-semibold">
-                  Hello, {user.displayName || "Guest"}!
+                  Здравей, {user.displayName || "Guest"}!
                 </span>
                 <NavLink
                   to="/dashboard"
