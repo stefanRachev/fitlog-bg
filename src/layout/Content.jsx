@@ -4,6 +4,8 @@ import NoFound from "../pages/NoFound";
 import Register from "../pages/Register";
 import Login from "../pages/Login";
 import NewWorkout from "../pages/NewWorkout";
+import WorkoutDetails from "../pages/WorkoutDetails";
+
 
 const Content = () => {
   return (
@@ -12,6 +14,7 @@ const Content = () => {
       <Route path="/register" element={<Register />} />
       <Route path="/login" element={<Login />} />
       <Route path="/new-workout" element={<NewWorkout />} />
+      <Route path="/workout/:workoutId" element={<WorkoutDetails />} />
       <Route path="*" element={<NoFound />} />
     </Routes>
   );
