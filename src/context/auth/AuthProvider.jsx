@@ -1,24 +1,34 @@
 import PropTypes from "prop-types";
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged ,updateProfile } from "firebase/auth";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  updateProfile,
+} from "firebase/auth";
 import { useState, useEffect } from "react";
 import { AuthContext } from "./AuthContext";
-import { auth } from "../../firebase/firebase"
+import { auth } from "../../firebase/firebase";
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null)
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-      const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       setUser(firebaseUser);
-      setLoading(false); 
+      setLoading(false);
     });
     return () => unsubscribe();
   }, []);
 
-  const register = async (email, password,username) => {
+  const register = async (email, password, username) => {
     try {
-      const result = await createUserWithEmailAndPassword(auth, email, password);
+      const result = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
 
       await updateProfile(result.user, {
         displayName: username,
@@ -26,10 +36,10 @@ export const AuthProvider = ({ children }) => {
       return result;
     } catch (error) {
       console.error("Registration error:", error);
-      throw error; 
+      throw error;
     }
   };
-  
+
   const login = async (email, password) => {
     try {
       const result = await signInWithEmailAndPassword(auth, email, password);
@@ -39,7 +49,7 @@ export const AuthProvider = ({ children }) => {
       throw error;
     }
   };
-  
+
   const logout = async () => {
     try {
       await signOut(auth);
@@ -51,7 +61,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, register,loading }}>
+    <AuthContext.Provider value={{ user, login, logout, register, loading }}>
       {children}
     </AuthContext.Provider>
   );

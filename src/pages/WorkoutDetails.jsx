@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../firebase/firebase";
 import { useAuth } from "../context/auth/useAuth";
@@ -11,12 +11,12 @@ const WorkoutDetails = () => {
   const [error, setError] = useState(null);
 
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchWorkout = async () => {
       if (!user) {
-        setError("Потребителят не е влязъл.");
-        setLoading(false);
+        navigate("/login");
         return;
       }
 
@@ -37,7 +37,7 @@ const WorkoutDetails = () => {
     };
 
     fetchWorkout();
-  }, [workoutId]);
+  }, [workoutId, user, navigate]);
 
   if (loading) return <p>Зареждане...</p>;
   if (error) return <p>{error}</p>;
@@ -45,17 +45,18 @@ const WorkoutDetails = () => {
 
   return (
     <div className="container mx-auto py-12 px-4">
-      <h1 className="text-4xl font-bold mb-6">{workout.title}</h1>
+      <h1 className="text-4xl font-bold mb-6 border-b-2 text-indigo-700">{workout.title}</h1>
       <p className="mb-2">Дата: {workout.date}</p>
       <p className="mb-2">Продължителност: {workout.duration} минути</p>
 
-      {/* Тук добавяме упражненията с сериите */}
       <div className="mt-8">
         <h2 className="text-2xl font-semibold mb-4">Упражнения</h2>
         {workout.exercises && workout.exercises.length > 0 ? (
           workout.exercises.map((exercise, exIdx) => (
             <div key={exIdx} className="mb-6 p-4 border rounded-lg">
-              <h3 className="text-xl font-medium mb-2">{exercise.name}</h3>
+              <h3 className="text-xl font-medium mb-2 text-red-500">
+                {exercise.name}
+              </h3>
               {exercise.sets && exercise.sets.length > 0 ? (
                 <table className="w-full text-left border-collapse">
                   <thead>
