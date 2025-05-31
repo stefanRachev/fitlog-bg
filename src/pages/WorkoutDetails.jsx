@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, deleteDoc } from "firebase/firestore";
 import { db } from "../firebase/firebase";
 import { useAuth } from "../context/auth/useAuth";
 
@@ -25,12 +25,14 @@ const WorkoutDetails = () => {
         const workoutSnap = await getDoc(workoutDocRef);
 
         if (workoutSnap.exists()) {
-          setWorkout(workoutSnap.data());
+          setWorkout({ id: workoutSnap.id, ...workoutSnap.data() });
         } else {
           setWorkout(null);
+          setError("Тренировката не е намерена.");
         }
       } catch (err) {
-        setError("Грешка при зареждане на тренировката.");
+        console.error("Грешка при зареждане на тренировката:", err);
+        setError("Възникна грешка при зареждане на тренировката.");
       } finally {
         setLoading(false);
       }
@@ -39,13 +41,71 @@ const WorkoutDetails = () => {
     fetchWorkout();
   }, [workoutId, user, navigate]);
 
-  if (loading) return <p>Зареждане...</p>;
-  if (error) return <p>{error}</p>;
-  if (!workout) return <p>Няма такава тренировка.</p>;
+  const handleDeleteWorkout = async () => {
+    if (!user) {
+      setError("Трябва да си влязъл в профила си, за да изтриеш тренировка.");
+      return;
+    }
+
+    const confirmDelete = window.confirm(
+      "Сигурни ли сте, че искате да изтриете тази тренировка? Това действие не може да бъде отменено."
+    );
+    if (!confirmDelete) {
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const workoutDocRef = doc(db, "users", user.uid, "workouts", workoutId);
+      await deleteDoc(workoutDocRef);
+
+      alert("Тренировката е изтрита успешно!");
+      navigate("/");
+    } catch (err) {
+      console.error("Грешка при изтриване на тренировката:", err);
+      setError(
+        "Възникна грешка при изтриване на тренировката. Моля, опитайте отново."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading)
+    return (
+      <p className="text-center mt-10 text-xl">Зареждане на тренировката...</p>
+    );
+  if (error)
+    return <p className="text-center mt-10 text-red-500 text-xl">{error}</p>;
+  if (!workout)
+    return (
+      <p className="text-center mt-10 text-xl">
+        Няма такава тренировка или нямате достъп до нея.
+      </p>
+    );
 
   return (
     <div className="container mx-auto py-12 px-4">
-      <h1 className="text-4xl font-bold mb-6 border-b-2 text-indigo-700">{workout.title}</h1>
+      <div className="flex justify-end gap-4 mb-6">
+        <button
+         
+          onClick={() => alert("Функционалността за редактиране предстои!")}
+          className="bg-yellow-500 text-white px-6 py-2 rounded-lg hover:bg-yellow-600 transition duration-300"
+        >
+          Редактирай
+        </button>
+        <button
+          onClick={handleDeleteWorkout} 
+          className="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 transition duration-300"
+        >
+          Изтрий
+        </button>
+      </div>
+      <h1 className="text-4xl font-bold mb-6 border-b-2 text-indigo-700">
+        {workout.title}
+      </h1>
       <p className="mb-2">Дата: {workout.date}</p>
       <p className="mb-2">Продължителност: {workout.duration} минути</p>
 

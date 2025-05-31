@@ -116,6 +116,7 @@ const Home = () => {
                 <p className="text-gray-600">
                   Продължителност: {workout.duration} мин
                 </p>
+
                 <Link
                   to={`/workout/${workout.id}`}
                   className="mt-4 inline-block text-blue-600 hover:underline"
