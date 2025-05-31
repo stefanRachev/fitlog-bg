@@ -40,17 +40,27 @@ const Login = () => {
 
     try {
       const userCredential = await login(email, password);
-      
+
       setFormData({ email: "", password: "" });
       navigate("/");
     } catch (error) {
       console.error("Login error:", error.code);
       if (error.code === "auth/user-not-found") {
-        setError("User not found.");
+        setError("Няма потребител с този имейл.");
+      } else if (error.code === "auth/wrong-password") {
+        setError("Грешна парола.");
       } else if (error.code === "auth/invalid-credential") {
-        setError("Invalid credentials provided.");
+        setError(
+          "Невалидни данни за вход. Моля, проверете имейла и паролата си."
+        );
+      } else if (error.code === "auth/invalid-email") {
+        setError("Невалиден формат на имейла.");
+      } else if (error.code === "auth/too-many-requests") {
+        setError(
+          "Твърде много неуспешни опити за вход. Моля, опитайте отново по-късно."
+        );
       } else {
-        setError("Login failed. Please try again.");
+        setError("Входът е неуспешен. Моля, опитайте отново.");
       }
     } finally {
       setIsSubmitting(false);
@@ -104,7 +114,7 @@ const Login = () => {
           to="/register"
           className="text-center rounded mx-auto p-2 underline hover:bg-blue-200"
         >
-          	Регистрация
+          Регистрация
         </Link>
       </div>
     </div>

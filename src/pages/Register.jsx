@@ -23,6 +23,7 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError("");
 
     const { username, email, password, repeatPassword } = formData;
 
@@ -33,30 +34,30 @@ const Register = () => {
       !repeatPassword.trim()
     ) {
       setError("Всички полета са задължителни.");
-      setTimeout(() => setError(""), 3000);
       setIsSubmitting(false);
       return;
     }
 
     if (username.length < 3) {
       setError("Потребителското име трябва да съдържа поне 3 символа.");
-      setTimeout(() => setError(""), 3000);
       setIsSubmitting(false);
       return;
     }
     if (password !== repeatPassword) {
-      setError("Passwords do not match!");
-      setTimeout(() => setError(""), 3000);
+      setError("Паролите не съвпадат!");
       setIsSubmitting(false);
       return;
     }
-    if (!email.includes("@")) {
-      setError("Enter a valid email!");
-      setTimeout(() => setError(""), 3000);
+    if (!email.includes("@") || !email.includes(".")) {
+      setError("Въведете валиден имейл адрес!");
       setIsSubmitting(false);
       return;
     }
-
+    if (password.length < 6) {
+      setError("Паролата трябва да съдържа поне 6 символа.");
+      setIsSubmitting(false);
+      return;
+    }
     try {
       await register(email, password, username);
 
@@ -70,8 +71,23 @@ const Register = () => {
 
       navigate("/");
     } catch (error) {
-      setError(error.message);
-      console.error("Firebase register error:", error);
+      console.error("Firebase register error:", error.code);
+
+      if (error.code === "auth/email-already-in-use") {
+        setError("Този имейл адрес вече е регистриран.");
+      } else if (error.code === "auth/invalid-email") {
+        setError("Невалиден формат на имейла. Моля, въведете коректен имейл.");
+      } else if (error.code === "auth/operation-not-allowed") {
+        setError(
+          "Регистрацията с имейл и парола не е активирана. Моля, свържете се с администратор."
+        );
+      } else if (error.code === "auth/weak-password") {
+        setError(
+          "Паролата е твърде слаба. Моля, изберете по-силна парола (минимум 6 символа)."
+        );
+      } else {
+        setError("Регистрацията е неуспешна. Моля, опитайте отново.");
+      }
     } finally {
       setIsSubmitting(false);
     }
