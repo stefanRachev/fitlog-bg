@@ -1,29 +1,20 @@
+// NewWorkout.js
 import { useState, useEffect } from "react";
-import {
-  getFirestore,
-  doc,
-  collection,
-  addDoc,
-  serverTimestamp,
-} from "firebase/firestore";
 import { useAuth } from "../context/auth/useAuth";
+import { useWorkout } from "../context/workouts/useWorkouts";
 import { useNavigate } from "react-router-dom";
-
-const db = getFirestore();
 
 function NewWorkout() {
   const [title, setTitle] = useState("");
   const [date, setDate] = useState("");
   const [duration, setDuration] = useState("");
   const [exercises, setExercises] = useState([
-    { name: "", sets: [{ reps: "", weight: "" }] }
+    { name: "", sets: [{ reps: "", weight: "" }] },
   ]);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(false);
-  const [loading, setLoading] = useState(false);
 
   const { user } = useAuth();
-  const navigate = useNavigate()
+  const { addWorkout, loading, error, success, setSuccess } = useWorkout();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!user) {
@@ -31,10 +22,13 @@ function NewWorkout() {
     }
   }, [user, navigate]);
 
-
   const addExercise = () => {
-    setExercises([...exercises, { name: "", sets: [{ reps: "", weight: "" }] }]);
+    setExercises([
+      ...exercises,
+      { name: "", sets: [{ reps: "", weight: "" }] },
+    ]);
   };
+
   const addSetToExercise = (exerciseIndex) => {
     const newExercises = [...exercises];
     newExercises[exerciseIndex].sets.push({ reps: "", weight: "" });
@@ -56,37 +50,24 @@ function NewWorkout() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!user) {
-      setError("Трябва да си влязъл в профила си, за да запазиш тренировка.");
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    setSuccess(false);
-
     const workout = {
       title,
       date,
       duration: Number(duration),
       exercises,
-      createdAt: serverTimestamp(),
     };
-    try {
-      const userRef = doc(db, "users", user.uid);
-      const workoutsRef = collection(userRef, "workouts");
-      await addDoc(workoutsRef, workout);
 
-      setSuccess(true);
+    const isSuccess = await addWorkout(workout);
+
+    if (isSuccess) {
       setTitle("");
       setDate("");
       setDuration("");
       setExercises([{ name: "", sets: [{ reps: "", weight: "" }] }]);
-      setTimeout(() => navigate("/"), 1000);
-    } catch (err) {
-      console.error("Error saving workout:", err);
-      setError("Грешка при запис на тренировката.");
-    } finally {
-      setLoading(false);
+      setTimeout(() => {
+        setSuccess(false);
+        navigate("/");
+      }, 1000);
     }
   };
 
@@ -96,12 +77,10 @@ function NewWorkout() {
       className="w-full max-w-2xl mx-auto flex flex-col gap-4 p-4 md:p-6 border rounded-2xl bg-white shadow-md"
     >
       <h2 className="text-xl font-bold text-center">Създай нова тренировка</h2>
-
       {error && <p className="text-red-500">{error}</p>}
       {success && (
         <p className="text-green-500">Тренировката е запазена успешно!</p>
       )}
-
       <input
         type="text"
         placeholder="Заглавие на тренировката"
@@ -126,7 +105,6 @@ function NewWorkout() {
         onChange={(e) => setDuration(e.target.value)}
         className="border rounded-lg px-3 py-2"
       />
-
       {exercises.map((exercise, i) => (
         <div key={i} className="p-4 border rounded-lg bg-gray-100">
           <input
@@ -143,9 +121,7 @@ function NewWorkout() {
                 type="number"
                 placeholder="Повторения"
                 value={set.reps}
-                onChange={(e) =>
-                  handleSetChange(i, j, "reps", e.target.value)
-                }
+                onChange={(e) => handleSetChange(i, j, "reps", e.target.value)}
                 className="border p-2 flex-1"
               />
               <input
@@ -170,7 +146,6 @@ function NewWorkout() {
         </div>
       ))}
 
-
       <button
         type="button"
         onClick={addExercise}
@@ -182,8 +157,9 @@ function NewWorkout() {
       <button
         type="submit"
         className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition"
+        disabled={loading}
       >
-        Запази тренировка
+        {loading ? "Записване..." : "Запази тренировка"}
       </button>
     </form>
   );
