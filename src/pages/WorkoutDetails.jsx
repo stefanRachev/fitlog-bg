@@ -1,16 +1,18 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { doc, getDoc, deleteDoc } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
 import { db } from "../firebase/firebase";
 import { useAuth } from "../context/auth/useAuth";
+import { useWorkout } from "../context/workouts/useWorkouts";
 
 const WorkoutDetails = () => {
   const { workoutId } = useParams();
   const [workout, setWorkout] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [loadingWorkout, setLoadingWorkout] = useState(true);
+  const [workoutError, setWorkoutError] = useState(null);
 
   const { user } = useAuth();
+  const { deleteWorkout, loading, error, setError } = useWorkout();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -28,13 +30,13 @@ const WorkoutDetails = () => {
           setWorkout({ id: workoutSnap.id, ...workoutSnap.data() });
         } else {
           setWorkout(null);
-          setError("Тренировката не е намерена.");
+          setWorkoutError("Тренировката не е намерена.");
         }
       } catch (err) {
         console.error("Грешка при зареждане на тренировката:", err);
-        setError("Възникна грешка при зареждане на тренировката.");
+        setWorkoutError("Възникна грешка при зареждане на тренировката.");
       } finally {
-        setLoading(false);
+        setLoadingWorkout(false);
       }
     };
 
@@ -42,11 +44,6 @@ const WorkoutDetails = () => {
   }, [workoutId, user, navigate]);
 
   const handleDeleteWorkout = async () => {
-    if (!user) {
-      setError("Трябва да си влязъл в профила си, за да изтриеш тренировка.");
-      return;
-    }
-
     const confirmDelete = window.confirm(
       "Сигурни ли сте, че искате да изтриете тази тренировка? Това действие не може да бъде отменено."
     );
@@ -54,31 +51,30 @@ const WorkoutDetails = () => {
       return;
     }
 
-    setLoading(true);
-    setError(null);
+    const isDeleted = await deleteWorkout(workoutId);
 
-    try {
-      const workoutDocRef = doc(db, "users", user.uid, "workouts", workoutId);
-      await deleteDoc(workoutDocRef);
-
+    if (isDeleted) {
       alert("Тренировката е изтрита успешно!");
       navigate("/");
-    } catch (err) {
-      console.error("Грешка при изтриване на тренировката:", err);
-      setError(
+    } else {
+      alert(
         "Възникна грешка при изтриване на тренировката. Моля, опитайте отново."
       );
-    } finally {
-      setLoading(false);
     }
   };
 
-  if (loading)
+  if (loadingWorkout)
     return (
       <p className="text-center mt-10 text-xl">Зареждане на тренировката...</p>
     );
-  if (error)
-    return <p className="text-center mt-10 text-red-500 text-xl">{error}</p>;
+
+  if (workoutError || error)
+    return (
+      <p className="text-center mt-10 text-red-500 text-xl">
+        {workoutError || error}
+      </p>
+    );
+
   if (!workout)
     return (
       <p className="text-center mt-10 text-xl">
@@ -90,17 +86,17 @@ const WorkoutDetails = () => {
     <div className="container mx-auto py-12 px-4">
       <div className="flex justify-end gap-4 mb-6">
         <button
-         
           onClick={() => alert("Функционалността за редактиране предстои!")}
           className="bg-yellow-500 text-white px-6 py-2 rounded-lg hover:bg-yellow-600 transition duration-300"
         >
           Редактирай
         </button>
         <button
-          onClick={handleDeleteWorkout} 
+          onClick={handleDeleteWorkout}
           className="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 transition duration-300"
+          disabled={loading}
         >
-          Изтрий
+          {loading ? "Изтриване..." : "Изтрий"}
         </button>
       </div>
       <h1 className="text-4xl font-bold mb-6 border-b-2 text-indigo-700">

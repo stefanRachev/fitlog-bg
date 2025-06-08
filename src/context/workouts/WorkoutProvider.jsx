@@ -1,67 +1,201 @@
 // src/context/workout/WorkoutProvider.js
 
 import PropTypes from "prop-types";
-import { useState } from "react";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
-import { db } from "../../firebase/firebase"; 
-import { useAuth } from "../auth/useAuth"; 
+import { useState, useEffect } from "react";
+import {
+  collection,
+  addDoc,
+  serverTimestamp,
+  doc,
+  deleteDoc,
+  query,
+  orderBy,
+  getDocs,
+  limit,
+  startAfter,
+} from "firebase/firestore";
+import { db } from "../../firebase/firebase";
+import { useAuth } from "../auth/useAuth";
 import { WorkoutContext } from "./WorkoutContext";
+
+const PAGE_SIZE = 7;
 
 export const WorkoutProvider = ({ children }) => {
   const { user } = useAuth();
 
   const [loading, setLoading] = useState(false);
+  const [loadingWorkouts, setLoadingWorkouts] = useState(true);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
+  const [workouts, setWorkouts] = useState([]);
+  const [lastVisible, setLastVisible] = useState(null);
+  const [hasMore, setHasMore] = useState(true);
 
-  /**
-   * Добавя нова тренировка към колекцията на потребителя във Firestore.
-   *
-   * @param {object} workoutData - Обект с данните за тренировката, включително title, date, duration, exercises.
-   * `date` тук ще бъде стрингът, който потребителят е въвел (пр. "2025-06-07").
-   */
   const addWorkout = async (workoutData) => {
-  
     setError(null);
     setSuccess(false);
 
     if (!user) {
       setError("Трябва да си влязъл в профила си, за да запазиш тренировка.");
-      return false; 
+      return false;
     }
 
-    setLoading(true); 
+    setLoading(true);
 
     try {
-     
       const workoutsRef = collection(db, "users", user.uid, "workouts");
-
-    
       await addDoc(workoutsRef, {
         ...workoutData,
         createdAt: serverTimestamp(),
       });
 
-      setSuccess(true); 
-      return true; 
+      setSuccess(true);
+
+      setWorkouts([]);
+      setLastVisible(null);
+      setHasMore(true);
+      await fetchWorkouts(false);
+      return true;
     } catch (err) {
       console.error("Error adding workout:", err);
-      setError("Грешка при запис на тренировката: " + err.message); 
-      return false; 
+      setError("Грешка при запис на тренировката: " + err.message);
+      return false;
     } finally {
-      setLoading(false); 
+      setLoading(false);
     }
   };
+
+  const deleteWorkout = async (workoutId) => {
+    setError(null);
+    setSuccess(false);
+
+    if (!user) {
+      setError("Трябва да си влязъл в профила си, за да изтриеш тренировка.");
+      return false;
+    }
+
+    setLoading(true);
+
+    try {
+      const workoutDocRef = doc(db, "users", user.uid, "workouts", workoutId);
+      await deleteDoc(workoutDocRef);
+
+      setSuccess(true);
+
+      setWorkouts((prevWorkouts) =>
+        prevWorkouts.filter((w) => w.id !== workoutId)
+      );
+      return true;
+    } catch (err) {
+      console.error("Грешка при изтриване на тренировката:", err);
+      setError("Грешка при изтриване на тренировката: " + err.message);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /**
+   * Зарежда тренировки за логнатия потребител от Firestore с пагинация.
+   * @param {boolean} loadMore - Дали да зареди следващата порция данни (true) или първата (false).
+   */
+  const fetchWorkouts = async (loadMore = false) => {
+    if (!user) {
+      setWorkouts([]);
+      setLastVisible(null);
+      setHasMore(false);
+      return;
+    }
+
+    setError(null);
+
+    try {
+      const workoutsCollectionRef = collection(
+        db,
+        "users",
+        user.uid,
+        "workouts"
+      );
+
+      let q;
+      if (loadMore && lastVisible) {
+        q = query(
+          workoutsCollectionRef,
+          orderBy("createdAt", "desc"),
+          startAfter(lastVisible),
+          limit(PAGE_SIZE)
+        );
+      } else {
+        q = query(
+          workoutsCollectionRef,
+          orderBy("createdAt", "desc"),
+          limit(PAGE_SIZE)
+        );
+      }
+
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.empty) {
+        setHasMore(false);
+
+        if (!loadMore) {
+          setWorkouts([]);
+        }
+        return;
+      }
+
+      const loadedWorkouts = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+        createdAt: doc.data().createdAt?.toDate(),
+      }));
+
+      setLastVisible(querySnapshot.docs[querySnapshot.docs.length - 1]);
+
+      if (loadMore) {
+        setWorkouts((prev) => [...prev, ...loadedWorkouts]);
+      } else {
+        setWorkouts(loadedWorkouts);
+      }
+  
+      setHasMore(querySnapshot.docs.length === PAGE_SIZE);
+    } catch (err) {
+      console.error("Грешка при зареждане на тренировките:", err);
+      setError("Грешка при зареждане на тренировките: " + err.message);
+    } finally {
+      setLoadingWorkouts(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user) {
+      setWorkouts([]);
+      setLastVisible(null);
+      setHasMore(true);
+      setLoadingWorkouts(true);
+      fetchWorkouts(false);
+    } else {
+      setWorkouts([]);
+      setLastVisible(null);
+      setHasMore(false);
+      setLoadingWorkouts(false);
+    }
+  }, [user]);
 
   return (
     <WorkoutContext.Provider
       value={{
+        workouts,
         addWorkout,
+        deleteWorkout,
+        fetchWorkouts,
         loading,
+        loadingWorkouts,
         error,
         success,
         setError,
         setSuccess,
+        hasMore,
       }}
     >
       {children}
