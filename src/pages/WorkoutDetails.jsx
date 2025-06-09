@@ -4,15 +4,18 @@ import { doc, getDoc } from "firebase/firestore";
 import { db } from "../firebase/firebase";
 import { useAuth } from "../context/auth/useAuth";
 import { useWorkout } from "../context/workouts/useWorkouts";
+import ConfirmationDialog from "../components/ConfirmationDialog";
 
 const WorkoutDetails = () => {
   const { workoutId } = useParams();
   const [workout, setWorkout] = useState(null);
   const [loadingWorkout, setLoadingWorkout] = useState(true);
   const [workoutError, setWorkoutError] = useState(null);
+  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
 
   const { user } = useAuth();
   const { deleteWorkout, loading, error, setError } = useWorkout();
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -28,18 +31,17 @@ const WorkoutDetails = () => {
 
         if (workoutSnap.exists()) {
           const data = workoutSnap.data();
-          
+
           let workoutDate = null;
-      
+
           if (data.date) {
-            if (typeof data.date.toDate === 'function') {
+            if (typeof data.date.toDate === "function") {
               workoutDate = data.date.toDate();
-            } else if (typeof data.date === 'string') { 
+            } else if (typeof data.date === "string") {
               workoutDate = new Date(data.date);
             }
           }
 
-      
           const workoutCreatedAt = data.createdAt?.toDate();
 
           setWorkout({
@@ -63,22 +65,21 @@ const WorkoutDetails = () => {
     fetchWorkout();
   }, [workoutId, user, navigate]);
 
-  const handleDeleteWorkout = async () => {
-    const confirmDelete = window.confirm(
-      "Сигурни ли сте, че искате да изтриете тази тренировка? Това действие не може да бъде отменено."
-    );
-    if (!confirmDelete) {
-      return;
-    }
+  const handleDeleteClick = () => {
+    setIsConfirmDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    setError(null);
 
     const isDeleted = await deleteWorkout(workoutId);
 
     if (isDeleted) {
-      alert("Тренировката е изтрита успешно!");
       navigate("/");
     } else {
-      alert(
-        "Възникна грешка при изтриване на тренировката. Моля, опитайте отново."
+      console.error(
+        "Неуспешно изтриване на тренировка. Грешка от контекста:",
+        error
       );
     }
   };
@@ -106,13 +107,13 @@ const WorkoutDetails = () => {
     <div className="container mx-auto py-12 px-4">
       <div className="flex justify-end gap-4 mb-6">
         <button
-           onClick={() => navigate(`/edit-workout/${workout.id}`)}
+          onClick={() => navigate(`/edit-workout/${workout.id}`)}
           className="bg-yellow-500 text-white px-6 py-2 rounded-lg hover:bg-yellow-600 transition duration-300"
         >
           Редактирай
         </button>
         <button
-          onClick={handleDeleteWorkout}
+          onClick={handleDeleteClick}
           className="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 transition duration-300"
           disabled={loading}
         >
@@ -122,10 +123,18 @@ const WorkoutDetails = () => {
       <h1 className="text-4xl font-bold mb-6 border-b-2 text-indigo-700">
         {workout.title}
       </h1>
-   
-      <p className="mb-2">Дата: {workout.date ? workout.date.toLocaleDateString('bg-BG') : 'Няма дата'}</p>
+
+      <p className="mb-2">
+        Дата:{" "}
+        {workout.date ? workout.date.toLocaleDateString("bg-BG") : "Няма дата"}
+      </p>
       <p className="mb-2">Продължителност: {workout.duration} минути</p>
-      <p className="mb-2">Създадена на: {workout.createdAt ? workout.createdAt.toLocaleDateString('bg-BG') : 'Няма дата'}</p>
+      <p className="mb-2">
+        Създадена на:{" "}
+        {workout.createdAt
+          ? workout.createdAt.toLocaleDateString("bg-BG")
+          : "Няма дата"}
+      </p>
 
       <div className="mt-8">
         <h2 className="text-2xl font-semibold mb-4">Упражнения</h2>
@@ -167,6 +176,16 @@ const WorkoutDetails = () => {
       <Link to="/" className="text-blue-600 hover:underline mt-6 inline-block">
         Обратно към началната
       </Link>
+
+      <ConfirmationDialog
+        isOpen={isConfirmDialogOpen}
+        setIsOpen={setIsConfirmDialogOpen}
+        title="Изтриване на тренировка"
+        message="Сигурни ли сте, че искате да изтриете тази тренировка? Това действие не може да бъде отменено и всички данни за нея ще бъдат загубени."
+        onConfirm={handleConfirmDelete}
+        confirmButtonText="Изтрий"
+        cancelButtonText="Отказ"
+      />
     </div>
   );
 };

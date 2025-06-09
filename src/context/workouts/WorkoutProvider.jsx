@@ -113,29 +113,21 @@ export const WorkoutProvider = ({ children }) => {
 
     try {
       const workoutDocRef = doc(db, "users", user.uid, "workouts", workoutId);
-
-      // Преобразувайте датата в Date обект, както правим при добавяне.
-      // input type="date" връща стринг "YYYY-MM-DD", new Date() го конвертира.
       const dateToStore = new Date(updatedWorkoutData.date);
 
-      // Подготвяме данните за актуализация. Не включваме createdAt, то не трябва да се променя.
       const dataToUpdate = {
         ...updatedWorkoutData,
-        date: dateToStore, // Уверете се, че датата е Date обект, който Firestore ще конвертира в Timestamp
+        date: dateToStore, 
       };
 
       await updateDoc(workoutDocRef, dataToUpdate);
 
       setSuccess(true);
 
-      // **** Управление на локалния стейт след актуализация ****
-      // За да гарантираме, че списъкът с тренировки е актуален и правилно сортиран
-      // (особено ако датата е променена и това влияе на сортирането/пагинацията),
-      // най-простият и сигурен начин е да презаредим първата страница.
-      setWorkouts([]); // Изчистваме текущите тренировки
-      setLastVisible(null); // Ресетваме пагинацията
+      setWorkouts([]);
+      setLastVisible(null); 
       setHasMore(true);
-      await fetchWorkouts(false); // Принуждаваме пълно презареждане на първата страница
+      await fetchWorkouts(false);
 
       return true;
     } catch (err) {
