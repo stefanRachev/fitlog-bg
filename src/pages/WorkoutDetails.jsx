@@ -27,7 +27,27 @@ const WorkoutDetails = () => {
         const workoutSnap = await getDoc(workoutDocRef);
 
         if (workoutSnap.exists()) {
-          setWorkout({ id: workoutSnap.id, ...workoutSnap.data() });
+          const data = workoutSnap.data();
+          
+          let workoutDate = null;
+      
+          if (data.date) {
+            if (typeof data.date.toDate === 'function') {
+              workoutDate = data.date.toDate();
+            } else if (typeof data.date === 'string') { 
+              workoutDate = new Date(data.date);
+            }
+          }
+
+      
+          const workoutCreatedAt = data.createdAt?.toDate();
+
+          setWorkout({
+            id: workoutSnap.id,
+            ...data,
+            date: workoutDate,
+            createdAt: workoutCreatedAt,
+          });
         } else {
           setWorkout(null);
           setWorkoutError("Тренировката не е намерена.");
@@ -102,8 +122,10 @@ const WorkoutDetails = () => {
       <h1 className="text-4xl font-bold mb-6 border-b-2 text-indigo-700">
         {workout.title}
       </h1>
-      <p className="mb-2">Дата: {workout.date}</p>
+   
+      <p className="mb-2">Дата: {workout.date ? workout.date.toLocaleDateString('bg-BG') : 'Няма дата'}</p>
       <p className="mb-2">Продължителност: {workout.duration} минути</p>
+      <p className="mb-2">Създадена на: {workout.createdAt ? workout.createdAt.toLocaleDateString('bg-BG') : 'Няма дата'}</p>
 
       <div className="mt-8">
         <h2 className="text-2xl font-semibold mb-4">Упражнения</h2>

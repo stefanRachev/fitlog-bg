@@ -44,8 +44,12 @@ export const WorkoutProvider = ({ children }) => {
 
     try {
       const workoutsRef = collection(db, "users", user.uid, "workouts");
+
+      const dateToStore = new Date(workoutData.date);
+
       await addDoc(workoutsRef, {
         ...workoutData,
+        date: dateToStore,
         createdAt: serverTimestamp(),
       });
 
@@ -121,14 +125,14 @@ export const WorkoutProvider = ({ children }) => {
       if (loadMore && lastVisible) {
         q = query(
           workoutsCollectionRef,
-          orderBy("createdAt", "desc"),
+          orderBy("date", "desc"),
           startAfter(lastVisible),
           limit(PAGE_SIZE)
         );
       } else {
         q = query(
           workoutsCollectionRef,
-          orderBy("createdAt", "desc"),
+          orderBy("date", "desc"),
           limit(PAGE_SIZE)
         );
       }
@@ -144,11 +148,23 @@ export const WorkoutProvider = ({ children }) => {
         return;
       }
 
-      const loadedWorkouts = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-        createdAt: doc.data().createdAt?.toDate(),
-      }));
+      const loadedWorkouts = querySnapshot.docs.map((doc) => {
+        const data = doc.data();
+        let workoutDate = null;
+        if (data.date) {
+          if (typeof data.date.toDate === "function") {
+            workoutDate = data.date.toDate();
+          } else if (typeof data.date === "string") {
+            workoutDate = new Date(data.date);
+          }
+        }
+        return {
+          id: doc.id,
+          ...data,
+          date: workoutDate,
+          createdAt: data.createdAt?.toDate(),
+        };
+      });
 
       setLastVisible(querySnapshot.docs[querySnapshot.docs.length - 1]);
 
@@ -157,7 +173,7 @@ export const WorkoutProvider = ({ children }) => {
       } else {
         setWorkouts(loadedWorkouts);
       }
-  
+
       setHasMore(querySnapshot.docs.length === PAGE_SIZE);
     } catch (err) {
       console.error("Грешка при зареждане на тренировките:", err);

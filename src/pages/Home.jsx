@@ -69,7 +69,13 @@ const Home = () => {
                   className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition"
                 >
                   <h3 className="text-xl font-bold mb-2">{workout.title}</h3>
-                  <p className="text-gray-600 mb-2">Дата: {workout.date}</p>
+                  <p className="text-gray-600 mb-2">
+                    {" "}
+                    Дата:{" "}
+                    {workout.date
+                      ? workout.date.toLocaleDateString("bg-BG")
+                      : "Няма дата"}
+                  </p>
                   <p className="text-gray-600">
                     Продължителност: {workout.duration} мин
                   </p>
