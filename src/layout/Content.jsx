@@ -5,6 +5,8 @@ import Register from "../pages/Register";
 import Login from "../pages/Login";
 import NewWorkout from "../pages/NewWorkout";
 import WorkoutDetails from "../pages/WorkoutDetails";
+import EditWorkout from "../pages/EditWorkout";
+
 
 
 const Content = () => {
@@ -15,6 +17,7 @@ const Content = () => {
       <Route path="/login" element={<Login />} />
       <Route path="/new-workout" element={<NewWorkout />} />
       <Route path="/workout/:workoutId" element={<WorkoutDetails />} />
+      <Route path="/edit-workout/:workoutId" element={<EditWorkout />} />
       <Route path="*" element={<NoFound />} />
     </Routes>
   );
