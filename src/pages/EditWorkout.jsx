@@ -132,7 +132,7 @@ function EditWorkout() {
       title,
       date,
       duration: Number(duration),
-      exercises: filteredExercises,
+      exercises: filteredExercises, 
     };
 
     setWorkoutContextError(null);
@@ -197,95 +197,61 @@ function EditWorkout() {
         onChange={(e) => setDuration(e.target.value)}
         className="border rounded-lg px-3 py-2"
       />
-      {exercises.map((exercise, i) => (
+       {exercises.map((exercise, i) => (
         <div key={i} className="p-4 border rounded-lg bg-gray-100 mb-4">
-          <div className="flex justify-between items-center mb-2">
+        
+          <div className="flex flex-col gap-2 mb-4"> 
             <input
               type="text"
               placeholder="Име на упражнение"
               value={exercise.name}
               onChange={(e) => handleExerciseNameChange(i, e.target.value)}
-              className="border p-2 w-full flex-grow mr-2"
+              className="border p-2 w-full" 
             />
-
-            {exercises.length > 0 && (
+           
+            {exercises.length > 1 && (
               <button
                 type="button"
                 onClick={() => removeExercise(i)}
-                className="bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600 transition"
+                className="bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600 transition self-end" 
                 title="Премахни упражнение"
               >
-                X
+                Премахни упражнение
               </button>
             )}
           </div>
 
-          {exercises.map((exercise, i) => (
-            <div key={i} className="p-4 border rounded-lg bg-gray-100 mb-4">
-
-              <div className="flex flex-col gap-2 mb-4">
-                <input
-                  type="text"
-                  placeholder="Име на упражнение"
-                  value={exercise.name}
-                  onChange={(e) => handleExerciseNameChange(i, e.target.value)}
-                  className="border p-2 w-full"
-                />
-
-                {exercises.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => removeExercise(i)}
-                    className="bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600 transition self-end"
-                    title="Премахни упражнение"
-                  >
-                    Премахни упражнение
-                  </button>
-                )}
-              </div>
-
-
-              {exercise.sets.map((set, j) => (
-                <div key={j} className="flex flex-col gap-2 my-2">
-                  <input
-                    type="number"
-                    placeholder="Повторения"
-                    value={set.reps}
-                    onChange={(e) => handleSetChange(i, j, "reps", e.target.value)}
-                    className="border p-2 w-full"
-                  />
-                  <input
-                    type="number"
-                    placeholder="Тежест (кг)"
-                    value={set.weight}
-                    onChange={(e) =>
-                      handleSetChange(i, j, "weight", e.target.value)
-                    }
-                    className="border p-2 w-full"
-                  />
-                  {exercise.sets.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => removeSetFromExercise(i, j)}
-                      className="bg-red-400 text-white px-2 py-1 rounded-lg hover:bg-red-500 transition self-end"
-                      title="Премахни серия"
-                    >
-                      X
-                    </button>
-                  )}
-                </div>
-              ))}
-
-              <button
-                type="button"
-                onClick={() => addSetToExercise(i)}
-                className="bg-green-500 text-white px-3 py-1 rounded mt-2 hover:bg-green-600 transition"
-              >
-                Добави серия
-              </button>
+    
+          {exercise.sets.map((set, j) => (
+            <div key={j} className="flex flex-col gap-2 my-2">
+              <input
+                type="number"
+                placeholder="Повторения"
+                value={set.reps}
+                onChange={(e) => handleSetChange(i, j, "reps", e.target.value)}
+                className="border p-2 w-full"
+              />
+              <input
+                type="number"
+                placeholder="Тежест (кг)"
+                value={set.weight}
+                onChange={(e) =>
+                  handleSetChange(i, j, "weight", e.target.value)
+                }
+                className="border p-2 w-full"
+              />
+              {exercise.sets.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => removeSetFromExercise(i, j)}
+                  className="bg-red-400 text-white px-2 py-1 rounded-lg hover:bg-red-500 transition self-end"
+                  title="Премахни серия"
+                >
+                  X
+                </button>
+              )}
             </div>
           ))}
-
 
           <button
             type="button"
@@ -296,6 +262,7 @@ function EditWorkout() {
           </button>
         </div>
       ))}
+
 
       <button
         type="button"
