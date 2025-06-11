@@ -29,9 +29,23 @@ function NewWorkout() {
     ]);
   };
 
+ 
+  const removeExercise = (indexToRemove) => {
+    setExercises(exercises.filter((_, i) => i !== indexToRemove));
+  };
+
   const addSetToExercise = (exerciseIndex) => {
     const newExercises = [...exercises];
     newExercises[exerciseIndex].sets.push({ reps: "", weight: "" });
+    setExercises(newExercises);
+  };
+
+
+  const removeSetFromExercise = (exerciseIndex, setIndexToRemove) => {
+    const newExercises = [...exercises];
+    newExercises[exerciseIndex].sets = newExercises[exerciseIndex].sets.filter(
+      (_, i) => i !== setIndexToRemove
+    );
     setExercises(newExercises);
   };
 
@@ -50,11 +64,19 @@ function NewWorkout() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Може да добавиш тук логика за филтриране на празни упражнения/серии
+    // преди изпращане, ако искаш да са задължителни.
+    // Например:
+    const filteredExercises = exercises.map(exercise => ({
+      ...exercise,
+      sets: exercise.sets.filter(set => set.reps || set.weight) 
+    })).filter(exercise => exercise.name || exercise.sets.length > 0); 
+
     const workout = {
       title,
       date,
       duration: Number(duration),
-      exercises,
+      exercises: filteredExercises, 
     };
 
     const isSuccess = await addWorkout(workout);
@@ -106,17 +128,30 @@ function NewWorkout() {
         className="border rounded-lg px-3 py-2"
       />
       {exercises.map((exercise, i) => (
-        <div key={i} className="p-4 border rounded-lg bg-gray-100">
-          <input
-            type="text"
-            placeholder="Име на упражнение"
-            value={exercise.name}
-            onChange={(e) => handleExerciseNameChange(i, e.target.value)}
-            className="border p-2 w-full"
-          />
+        <div key={i} className="p-4 border rounded-lg bg-gray-100 mb-4"> 
+          <div className="flex justify-between items-center mb-2">
+            <input
+              type="text"
+              placeholder="Име на упражнение"
+              value={exercise.name}
+              onChange={(e) => handleExerciseNameChange(i, e.target.value)}
+              className="border p-2 w-full flex-grow mr-2"
+            />
+           
+            {exercises.length > 1 && (
+              <button
+                type="button"
+                onClick={() => removeExercise(i)}
+                className="bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600 transition"
+                title="Премахни упражнение"
+              >
+                X
+              </button>
+            )}
+          </div>
 
           {exercise.sets.map((set, j) => (
-            <div key={j} className="flex flex-col gap-2 my-2">
+            <div key={j} className="flex flex-col md:flex-row gap-2 my-2 items-center"> 
               <input
                 type="number"
                 placeholder="Повторения"
@@ -133,13 +168,24 @@ function NewWorkout() {
                 }
                 className="border p-2 flex-1"
               />
+            
+              {exercise.sets.length > 1 && ( 
+                <button
+                  type="button"
+                  onClick={() => removeSetFromExercise(i, j)}
+                  className="bg-red-400 text-white px-2 py-1 rounded-lg hover:bg-red-500 transition self-center"
+                  title="Премахни серия"
+                >
+                  X
+                </button>
+              )}
             </div>
           ))}
 
           <button
             type="button"
             onClick={() => addSetToExercise(i)}
-            className="bg-green-500 text-white px-3 py-1 rounded"
+            className="bg-green-500 text-white px-3 py-1 rounded mt-2 hover:bg-green-600 transition"
           >
             Добави серия
           </button>

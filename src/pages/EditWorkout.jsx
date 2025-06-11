@@ -1,33 +1,39 @@
 // src/components/EditWorkout.js
+
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom"; 
+import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/auth/useAuth";
 import { useWorkout } from "../context/workouts/useWorkouts";
-import { doc, getDoc } from "firebase/firestore"; 
-import { db } from "../firebase/firebase"; 
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../firebase/firebase";
 
 function EditWorkout() {
-  const { workoutId } = useParams(); 
+  const { workoutId } = useParams();
   const [title, setTitle] = useState("");
   const [date, setDate] = useState("");
   const [duration, setDuration] = useState("");
-  const [exercises, setExercises] = useState([]); 
-  const [loadingInitialData, setLoadingInitialData] = useState(true); 
+  const [exercises, setExercises] = useState([]);
+  const [loadingInitialData, setLoadingInitialData] = useState(true);
   const [initialDataError, setInitialDataError] = useState(null);
 
   const { user } = useAuth();
 
-  const { updateWorkout, loading, error, success, setSuccess, setError: setWorkoutContextError } = useWorkout();
+  const {
+    updateWorkout,
+    loading,
+    error,
+    success,
+    setSuccess,
+    setError: setWorkoutContextError,
+  } = useWorkout();
   const navigate = useNavigate();
 
- 
   useEffect(() => {
     if (!user) {
       navigate("/login");
     }
   }, [user, navigate]);
 
-  
   useEffect(() => {
     const fetchExistingWorkout = async () => {
       if (!user || !workoutId) {
@@ -44,25 +50,28 @@ function EditWorkout() {
 
           let workoutDate = null;
           if (data.date) {
-            if (typeof data.date.toDate === 'function') {
+            if (typeof data.date.toDate === "function") {
               workoutDate = data.date.toDate();
-            } else if (typeof data.date === 'string') {
+            } else if (typeof data.date === "string") {
               workoutDate = new Date(data.date);
             }
           }
 
           setTitle(data.title || "");
-      
           setDate(workoutDate ? workoutDate.toISOString().slice(0, 10) : "");
           setDuration(data.duration || "");
-          setExercises(data.exercises || []); 
-          
+          setExercises(data.exercises || []);
         } else {
           setInitialDataError("Тренировката не е намерена.");
         }
       } catch (err) {
-        console.error("Грешка при зареждане на тренировката за редактиране:", err);
-        setInitialDataError("Възникна грешка при зареждане на тренировката за редактиране.");
+        console.error(
+          "Грешка при зареждане на тренировката за редактиране:",
+          err
+        );
+        setInitialDataError(
+          "Възникна грешка при зареждане на тренировката за редактиране."
+        );
       } finally {
         setLoadingInitialData(false);
       }
@@ -78,9 +87,21 @@ function EditWorkout() {
     ]);
   };
 
+  const removeExercise = (indexToRemove) => {
+    setExercises(exercises.filter((_, i) => i !== indexToRemove));
+  };
+
   const addSetToExercise = (exerciseIndex) => {
     const newExercises = [...exercises];
     newExercises[exerciseIndex].sets.push({ reps: "", weight: "" });
+    setExercises(newExercises);
+  };
+
+  const removeSetFromExercise = (exerciseIndex, setIndexToRemove) => {
+    const newExercises = [...exercises];
+    newExercises[exerciseIndex].sets = newExercises[exerciseIndex].sets.filter(
+      (_, i) => i !== setIndexToRemove
+    );
     setExercises(newExercises);
   };
 
@@ -96,36 +117,50 @@ function EditWorkout() {
     setExercises(newExercises);
   };
 
-
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // логика за филтриране на празни упражнения/серии
+    // да са задължителни.
+    const filteredExercises = exercises.map(exercise => ({
+      ...exercise,
+      sets: exercise.sets.filter(set => set.reps || set.weight)
+    })).filter(exercise => exercise.name || exercise.sets.length > 0);
+
 
     const updatedWorkout = {
       title,
       date,
       duration: Number(duration),
-      exercises,
+      exercises: filteredExercises, 
     };
 
-
-    setWorkoutContextError(null); 
+    setWorkoutContextError(null);
 
     const isSuccess = await updateWorkout(workoutId, updatedWorkout);
 
     if (isSuccess) {
       setTimeout(() => {
-        setSuccess(false); 
-        navigate(`/workout/${workoutId}`); 
+        setSuccess(false);
+        navigate(`/workout/${workoutId}`);
       }, 1000);
     }
   };
 
   if (loadingInitialData) {
-    return <p className="text-center mt-10 text-xl">Зареждане на данни за редактиране...</p>;
+    return (
+      <p className="text-center mt-10 text-xl">
+        Зареждане на данни за редактиране...
+      </p>
+    );
   }
 
   if (initialDataError) {
-    return <p className="text-center mt-10 text-red-500 text-xl">{initialDataError}</p>;
+    return (
+      <p className="text-center mt-10 text-red-500 text-xl">
+        {initialDataError}
+      </p>
+    );
   }
 
   return (
@@ -134,10 +169,10 @@ function EditWorkout() {
       className="w-full max-w-2xl mx-auto flex flex-col gap-4 p-4 md:p-6 border rounded-2xl bg-white shadow-md"
     >
       <h2 className="text-xl font-bold text-center">Редактирай тренировка</h2>
-      {error && <p className="text-red-500">{error}</p>} 
+      {error && <p className="text-red-500">{error}</p>}
       {success && (
         <p className="text-green-500">Тренировката е запазена успешно!</p>
-      )} 
+      )}
       <input
         type="text"
         placeholder="Заглавие на тренировката"
@@ -149,7 +184,7 @@ function EditWorkout() {
 
       <input
         type="date"
-        value={date} 
+        value={date}
         onChange={(e) => setDate(e.target.value)}
         required
         className="border rounded-lg px-3 py-2"
@@ -163,17 +198,30 @@ function EditWorkout() {
         className="border rounded-lg px-3 py-2"
       />
       {exercises.map((exercise, i) => (
-        <div key={i} className="p-4 border rounded-lg bg-gray-100">
-          <input
-            type="text"
-            placeholder="Име на упражнение"
-            value={exercise.name}
-            onChange={(e) => handleExerciseNameChange(i, e.target.value)}
-            className="border p-2 w-full"
-          />
+        <div key={i} className="p-4 border rounded-lg bg-gray-100 mb-4">
+          <div className="flex justify-between items-center mb-2">
+            <input
+              type="text"
+              placeholder="Име на упражнение"
+              value={exercise.name}
+              onChange={(e) => handleExerciseNameChange(i, e.target.value)}
+              className="border p-2 w-full flex-grow mr-2"
+            />
+         
+            {exercises.length > 0 && (
+              <button
+                type="button"
+                onClick={() => removeExercise(i)}
+                className="bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600 transition"
+                title="Премахни упражнение"
+              >
+                X
+              </button>
+            )}
+          </div>
 
           {exercise.sets.map((set, j) => (
-            <div key={j} className="flex flex-col gap-2 my-2">
+            <div key={j} className="flex flex-col md:flex-row gap-2 my-2 items-center">
               <input
                 type="number"
                 placeholder="Повторения"
@@ -190,13 +238,24 @@ function EditWorkout() {
                 }
                 className="border p-2 flex-1"
               />
+              
+              {exercise.sets.length > 0 && ( 
+                <button
+                  type="button"
+                  onClick={() => removeSetFromExercise(i, j)}
+                  className="bg-red-400 text-white px-2 py-1 rounded-lg hover:bg-red-500 transition self-center"
+                  title="Премахни серия"
+                >
+                  X
+                </button>
+              )}
             </div>
           ))}
 
           <button
             type="button"
             onClick={() => addSetToExercise(i)}
-            className="bg-green-500 text-white px-3 py-1 rounded"
+            className="bg-green-500 text-white px-3 py-1 rounded mt-2 hover:bg-green-600 transition"
           >
             Добави серия
           </button>
