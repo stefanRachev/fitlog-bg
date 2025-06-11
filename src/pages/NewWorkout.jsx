@@ -127,37 +127,39 @@ function NewWorkout() {
         onChange={(e) => setDuration(e.target.value)}
         className="border rounded-lg px-3 py-2"
       />
-      {exercises.map((exercise, i) => (
-        <div key={i} className="p-4 border rounded-lg bg-gray-100 mb-4"> 
-          <div className="flex justify-between items-center mb-2">
+     {exercises.map((exercise, i) => (
+        <div key={i} className="p-4 border rounded-lg bg-gray-100 mb-4">
+        
+          <div className="flex flex-col gap-2 mb-4"> 
             <input
               type="text"
               placeholder="Име на упражнение"
               value={exercise.name}
               onChange={(e) => handleExerciseNameChange(i, e.target.value)}
-              className="border p-2 w-full flex-grow mr-2"
+              className="border p-2 w-full" 
             />
            
             {exercises.length > 1 && (
               <button
                 type="button"
                 onClick={() => removeExercise(i)}
-                className="bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600 transition"
+                className="bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600 transition self-end" 
                 title="Премахни упражнение"
               >
-                X
+                Премахни упражнение
               </button>
             )}
           </div>
 
+    
           {exercise.sets.map((set, j) => (
-            <div key={j} className="flex flex-col md:flex-row gap-2 my-2 items-center"> 
+            <div key={j} className="flex flex-col gap-2 my-2">
               <input
                 type="number"
                 placeholder="Повторения"
                 value={set.reps}
                 onChange={(e) => handleSetChange(i, j, "reps", e.target.value)}
-                className="border p-2 flex-1"
+                className="border p-2 w-full"
               />
               <input
                 type="number"
@@ -166,14 +168,13 @@ function NewWorkout() {
                 onChange={(e) =>
                   handleSetChange(i, j, "weight", e.target.value)
                 }
-                className="border p-2 flex-1"
+                className="border p-2 w-full"
               />
-            
-              {exercise.sets.length > 1 && ( 
+              {exercise.sets.length > 1 && (
                 <button
                   type="button"
                   onClick={() => removeSetFromExercise(i, j)}
-                  className="bg-red-400 text-white px-2 py-1 rounded-lg hover:bg-red-500 transition self-center"
+                  className="bg-red-400 text-white px-2 py-1 rounded-lg hover:bg-red-500 transition self-end"
                   title="Премахни серия"
                 >
                   X
