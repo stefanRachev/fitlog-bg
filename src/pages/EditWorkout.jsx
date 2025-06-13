@@ -1,4 +1,4 @@
-// src/components/EditWorkout.js
+// src/pages/EditWorkout.js
 
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
@@ -13,6 +13,7 @@ function EditWorkout() {
   const [date, setDate] = useState("");
   const [duration, setDuration] = useState("");
   const [exercises, setExercises] = useState([]);
+  const [comments, setComments] = useState("");
   const [loadingInitialData, setLoadingInitialData] = useState(true);
   const [initialDataError, setInitialDataError] = useState(null);
 
@@ -61,6 +62,7 @@ function EditWorkout() {
           setDate(workoutDate ? workoutDate.toISOString().slice(0, 10) : "");
           setDuration(data.duration || "");
           setExercises(data.exercises || []);
+          setComments(data.comments || "");
         } else {
           setInitialDataError("Тренировката не е намерена.");
         }
@@ -122,17 +124,19 @@ function EditWorkout() {
 
     // логика за филтриране на празни упражнения/серии
     // да са задължителни.
-    const filteredExercises = exercises.map(exercise => ({
-      ...exercise,
-      sets: exercise.sets.filter(set => set.reps || set.weight)
-    })).filter(exercise => exercise.name || exercise.sets.length > 0);
-
+    const filteredExercises = exercises
+      .map((exercise) => ({
+        ...exercise,
+        sets: exercise.sets.filter((set) => set.reps || set.weight),
+      }))
+      .filter((exercise) => exercise.name || exercise.sets.length > 0);
 
     const updatedWorkout = {
       title,
       date,
       duration: Number(duration),
-      exercises: filteredExercises, 
+      exercises: filteredExercises,
+      comments,
     };
 
     setWorkoutContextError(null);
@@ -197,23 +201,22 @@ function EditWorkout() {
         onChange={(e) => setDuration(e.target.value)}
         className="border rounded-lg px-3 py-2"
       />
-       {exercises.map((exercise, i) => (
+      {exercises.map((exercise, i) => (
         <div key={i} className="p-4 border rounded-lg bg-gray-100 mb-4">
-        
-          <div className="flex flex-col gap-2 mb-4"> 
+          <div className="flex flex-col gap-2 mb-4">
             <input
               type="text"
               placeholder="Име на упражнение"
               value={exercise.name}
               onChange={(e) => handleExerciseNameChange(i, e.target.value)}
-              className="border p-2 w-full" 
+              className="border p-2 w-full"
             />
-           
+
             {exercises.length > 1 && (
               <button
                 type="button"
                 onClick={() => removeExercise(i)}
-                className="bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600 transition self-end" 
+                className="bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600 transition self-end"
                 title="Премахни упражнение"
               >
                 Премахни упражнение
@@ -221,7 +224,6 @@ function EditWorkout() {
             )}
           </div>
 
-    
           {exercise.sets.map((set, j) => (
             <div key={j} className="flex flex-col gap-2 my-2">
               <input
@@ -263,7 +265,6 @@ function EditWorkout() {
         </div>
       ))}
 
-
       <button
         type="button"
         onClick={addExercise}
@@ -271,6 +272,14 @@ function EditWorkout() {
       >
         Добави упражнение
       </button>
+
+      <textarea
+        placeholder="Допълнителни бележки или коментари за тренировката..."
+        value={comments}
+        onChange={(e) => setComments(e.target.value)}
+        rows="4"
+        className="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+      ></textarea>
 
       <button
         type="submit"

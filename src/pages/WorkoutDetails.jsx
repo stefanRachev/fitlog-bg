@@ -136,6 +136,13 @@ const WorkoutDetails = () => {
           : "Няма дата"}
       </p>
 
+      {workout.comments && (
+        <div className="mt-4 p-3 bg-gray-50 border rounded-lg shadow-sm">
+          <h3 className="font-semibold mb-1 text-gray-700">Коментари:</h3>
+          <p className="text-gray-800">{workout.comments}</p>
+        </div>
+      )}
+
       <div className="mt-8">
         <h2 className="text-2xl font-semibold mb-4">Упражнения</h2>
         {workout.exercises && workout.exercises.length > 0 ? (
