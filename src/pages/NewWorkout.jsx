@@ -63,9 +63,7 @@ function NewWorkout() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Може да добавиш тук логика за филтриране на празни упражнения/серии
-    // преди изпращане, ако искаш да са задължителни.
-    // Например:
+  
     const filteredExercises = exercises
       .map((exercise) => ({
         ...exercise,

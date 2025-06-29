@@ -1,3 +1,5 @@
+// src/context/auth/AuthProvider.jsx
+
 import PropTypes from "prop-types";
 import {
   createUserWithEmailAndPassword,
@@ -8,15 +10,47 @@ import {
 } from "firebase/auth";
 import { useState, useEffect } from "react";
 import { AuthContext } from "./AuthContext";
-import { auth } from "../../firebase/firebase";
+
+import { auth, db } from "../../firebase/firebase";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      setUser(firebaseUser);
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        try {
+          const userDocRef = doc(db, "users", firebaseUser.uid);
+          const userDocSnap = await getDoc(userDocRef);
+
+          if (userDocSnap.exists()) {
+            const userData = userDocSnap.data();
+
+            setUser({
+              ...firebaseUser,
+              role: userData.role || "user",
+            });
+          } else {
+            await setDoc(userDocRef, {
+              email: firebaseUser.email,
+              displayName: firebaseUser.displayName,
+              role: "user",
+            });
+            setUser({
+              ...firebaseUser,
+              role: "user",
+            });
+          }
+        } catch (error) {
+          console.error("Error fetching or creating user role:", error);
+
+          setUser(firebaseUser);
+        }
+      } else {
+        setUser(null);
+      }
       setLoading(false);
     });
     return () => unsubscribe();
@@ -33,6 +67,13 @@ export const AuthProvider = ({ children }) => {
       await updateProfile(result.user, {
         displayName: username,
       });
+
+      await setDoc(doc(db, "users", result.user.uid), {
+        email: result.user.email,
+        displayName: username,
+        role: "user",
+      });
+
       return result;
     } catch (error) {
       console.error("Registration error:", error);
